@@ -207,6 +207,7 @@ export function toRunCase(capture: DeepSeekHarnessCapture): JsonObject {
         sdk_server_name: capture.upstream.sdk_server_name,
         sdk_wire_version: capture.upstream.sdk_wire_version,
         protocol_negotiated: capture.upstream.protocol_negotiated,
+        host_paths_retained: capture.invocation.host_paths_retained,
         notifications_captured: capture.notifications.length,
         final_response: capture.result?.final_response ?? null,
         finish_reason: capture.result?.finish_reason ?? null

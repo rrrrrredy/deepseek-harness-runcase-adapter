@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
 import test from "node:test";
 
 import { assertValidRunCase, recordDeepSeekRun, toRunCase, type JsonValue } from "../src/index.js";
@@ -23,7 +24,6 @@ test("records a keyless SDK run, redacts secrets, and keeps correctness unknown"
       dshHome,
       dshBin: fakeRuntime,
       environment: { ...process.env, FAKE_TEXT: `recorded response ${secret}` },
-      excludedPaths: [root],
       requestTimeoutMs: 5_000
     });
     assert.equal(recorded.capture.status, "succeeded");
@@ -36,8 +36,81 @@ test("records a keyless SDK run, redacts secrets, and keeps correctness unknown"
     assert.equal(serialized.includes(secret), false);
     assert.equal(serialized.includes(root), false);
     assert.equal(serialized.includes(root.replaceAll("\\", "\\\\")), false);
+    assert.equal(recorded.capture.invocation.workspace, ".");
+    assert.equal(recorded.capture.invocation.dsh_home, "_runtime/deepseek-harness");
+    assert.equal(recorded.capture.invocation.host_paths_retained, false);
     assert.match(serialized, /REDACTED/);
     assertValidRunCase(recorded.runCase);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("atomic record creation has one winner and never replaces the destination", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dsh-runcase-atomic-"));
+  const output = join(root, "run.json");
+  const barrier = join(root, "go");
+  const helper = resolve("test/fixtures/atomic-writer.mjs");
+  try {
+    const children = ["first", "second"].map((label) =>
+      spawn(process.execPath, [helper, output, barrier, label], { stdio: ["ignore", "pipe", "pipe"] })
+    );
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+    writeFileSync(barrier, "go", "utf8");
+    const results = await Promise.all(
+      children.map(async (child) => {
+        let stderr = "";
+        child.stderr?.on("data", (chunk) => {
+          stderr += String(chunk);
+        });
+        const [code] = await once(child, "exit");
+        return { code, stderr };
+      })
+    );
+    assert.deepEqual(results.map((item) => item.code).sort(), [0, 1]);
+    const retained = JSON.parse(readFileSync(output, "utf8")) as { label: string };
+    assert.ok(retained.label === "first" || retained.label === "second");
+    assert.equal(readdirSync(root).some((name) => name.endsWith(".tmp")), false);
+    assert.match(results.find((item) => item.code === 1)?.stderr ?? "", /Refusing to overwrite/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("a two-record race keeps only the winning run and its matching capture", async () => {
+  const root = mkdtempSync(join(tmpdir(), "dsh-runcase-pair-"));
+  const output = join(root, "run.json");
+  const barrier = join(root, "go");
+  const helper = resolve("test/fixtures/atomic-writer.mjs");
+  try {
+    const children = ["first", "second"].map((label) =>
+      spawn(process.execPath, [helper, output, barrier, label, join(root, `${label}.capture.json`)], {
+        stdio: ["ignore", "pipe", "pipe"]
+      })
+    );
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
+    writeFileSync(barrier, "go", "utf8");
+    const results = await Promise.all(
+      children.map(async (child) => {
+        let stderr = "";
+        child.stderr?.on("data", (chunk) => {
+          stderr += String(chunk);
+        });
+        const [code] = await once(child, "exit");
+        return { code, stderr };
+      })
+    );
+    assert.deepEqual(results.map((item) => item.code).sort(), [0, 1]);
+    const retained = JSON.parse(readFileSync(output, "utf8")) as { label: string };
+    const winningCapture = join(root, `${retained.label}.capture.json`);
+    const losingLabel = retained.label === "first" ? "second" : "first";
+    assert.deepEqual(JSON.parse(readFileSync(winningCapture, "utf8")), {
+      label: retained.label,
+      kind: "capture"
+    });
+    assert.equal(existsSync(join(root, `${losingLabel}.capture.json`)), false);
+    assert.equal(readdirSync(root).some((name) => name.endsWith(".tmp")), false);
+    assert.match(results.find((item) => item.code === 1)?.stderr ?? "", /Refusing to overwrite/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

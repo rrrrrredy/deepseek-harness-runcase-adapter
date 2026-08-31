@@ -53,6 +53,8 @@ The command writes two new files and refuses to overwrite either:
 
 Useful options include `--provider`, `--model`, `--profile`, repeated `--patch`, `--reasoning-effort`, `--max-tokens`, and repeated `--exclude-path`.
 
+Records use `.` and `_runtime/deepseek-harness` for the workspace and Harness home by default, so moving or sharing JSON does not reveal host directory names. `--retain-host-paths` is an explicit local-only opt-in and prints a warning because it writes both absolute paths into the capture and RunCase files.
+
 ## Validate or reconvert
 
 ```bash

@@ -25,11 +25,12 @@
     "LICENSE",
     "NOTICE",
     "UPSTREAM.md",
-    "upstream.json"
+    "upstream.json",
+    "npm-shrinkwrap.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test dist/test/*.test.js",
+    "test": "npm run build && node --test dist/test",
     "generate:example": "npm run build && node scripts/generate-example.mjs",
     "check": "npm test && node dist/src/cli.js validate examples/agent.run.deepseek.sample.json",
     "prepare": "npm run build"

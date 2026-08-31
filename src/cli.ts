@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { existsSync, linkSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, parse, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { fileURLToPath } from "node:url";
 
 import { assertValidRunCase, toRunCase } from "./convert.js";
 import { adapterVersion, recordDeepSeekRun } from "./run.js";
@@ -19,13 +21,48 @@ function json(path: string): JsonValue {
   return JSON.parse(readFileSync(resolve(path), "utf8")) as JsonValue;
 }
 
-function atomicJson(path: string, value: JsonValue): void {
+export function atomicJson(path: string, value: JsonValue): void {
   const destination = resolve(path);
   if (existsSync(destination)) throw new Error(`Refusing to overwrite an existing record: ${destination}`);
   mkdirSync(dirname(destination), { recursive: true });
-  const temporary = `${destination}.${process.pid}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", flag: "wx", mode: 0o600 });
-  renameSync(temporary, destination);
+  const temporary = `${destination}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx",
+      mode: 0o600
+    });
+    linkSync(temporary, destination);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+      throw new Error(`Refusing to overwrite an existing record: ${destination}`, { cause: error });
+    }
+    throw error;
+  } finally {
+    if (existsSync(temporary)) unlinkSync(temporary);
+  }
+}
+
+export function atomicRunRecords(
+  output: string,
+  captureOutput: string,
+  runCase: JsonValue,
+  capture: JsonValue
+): void {
+  const destination = resolve(output);
+  const captureDestination = resolve(captureOutput);
+  if (destination === captureDestination) {
+    throw new Error("The run and capture records must use different output paths.");
+  }
+  let captureCreated = false;
+  try {
+    atomicJson(captureDestination, capture);
+    captureCreated = true;
+    atomicJson(destination, runCase);
+  } catch (error) {
+    if (captureCreated && existsSync(captureDestination)) unlinkSync(captureDestination);
+    throw error;
+  }
 }
 
 function required(value: string | undefined, name: string): string {
@@ -61,7 +98,8 @@ async function runCommand(argv: string[]): Promise<void> {
       "max-tokens": { type: "string" },
       "initialize-timeout-ms": { type: "string" },
       "request-timeout-ms": { type: "string" },
-      "exclude-path": { type: "string", multiple: true }
+      "exclude-path": { type: "string", multiple: true },
+      "retain-host-paths": { type: "boolean", default: false }
     }
   });
   if ((values.prompt === undefined) === (values["prompt-file"] === undefined)) {
@@ -73,8 +111,16 @@ async function runCommand(argv: string[]): Promise<void> {
   const maxTokens = positiveInteger(values["max-tokens"], "--max-tokens");
   const initializeTimeoutMs = positiveInteger(values["initialize-timeout-ms"], "--initialize-timeout-ms");
   const requestTimeoutMs = positiveInteger(values["request-timeout-ms"], "--request-timeout-ms");
+  if (values["retain-host-paths"]) {
+    process.stderr.write(
+      "Warning: --retain-host-paths writes absolute workspace and DSH_HOME paths into both local records.\n"
+    );
+  }
   const parsed = parse(resolve(output));
   const captureOutput = values["capture-output"] ?? resolve(parsed.dir, `${parsed.name}.capture.json`);
+  if (resolve(output) === resolve(captureOutput)) {
+    throw new Error("The run and capture records must use different output paths.");
+  }
   if (existsSync(resolve(output)) || existsSync(resolve(captureOutput))) {
     throw new Error("Refusing to overwrite an existing run or capture record.");
   }
@@ -93,10 +139,15 @@ async function runCommand(argv: string[]): Promise<void> {
     ...(initializeTimeoutMs === undefined ? {} : { initializeTimeoutMs }),
     ...(requestTimeoutMs === undefined ? {} : { requestTimeoutMs }),
     excludedPaths: values["exclude-path"] ?? [],
+    retainHostPaths: values["retain-host-paths"],
     environment: process.env
   });
-  atomicJson(captureOutput, recorded.capture as unknown as JsonValue);
-  atomicJson(output, recorded.runCase);
+  atomicRunRecords(
+    output,
+    captureOutput,
+    recorded.runCase,
+    recorded.capture as unknown as JsonValue
+  );
   process.stdout.write(`Recorded ${recorded.capture.status}: ${resolve(output)}\nCapture: ${resolve(captureOutput)}\n`);
 }
 
@@ -139,7 +190,9 @@ async function main(): Promise<void> {
   throw new Error(`Unknown command: ${command}`);
 }
 
-main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exitCode = 1;
-});
+if (resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
+  main().catch((error: unknown) => {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}

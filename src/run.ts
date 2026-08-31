@@ -105,6 +105,8 @@ function captureNotification(notification: HarnessNotification): CapturedNotific
 export async function recordDeepSeekRun(options: RecordRunOptions): Promise<RecordedRun> {
   const workspace = resolve(options.workspace);
   const dshHome = resolve(options.dshHome);
+  const workspaceRecord = options.retainHostPaths ? workspace : ".";
+  const dshHomeRecord = options.retainHostPaths ? dshHome : "_runtime/deepseek-harness";
   const patches = capturePatches(options.patches ?? [], workspace);
   const commit = gitCommit(workspace);
   const excludedPathLabels = (options.excludedPaths ?? []).map((_, index) => `user-excluded-path-${index + 1}`);
@@ -155,8 +157,9 @@ export async function recordDeepSeekRun(options: RecordRunOptions): Promise<Reco
     upstream,
     invocation: {
       prompt: options.prompt,
-      workspace,
-      dsh_home: dshHome,
+      workspace: workspaceRecord,
+      dsh_home: dshHomeRecord,
+      host_paths_retained: options.retainHostPaths === true,
       profile: options.profile ?? "sdk",
       provider: options.provider ?? "deepseek-official",
       model: options.model ?? "deepseek-v4-flash",

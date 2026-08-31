@@ -22,6 +22,7 @@ export interface CaptureInvocation {
   prompt: string;
   workspace: string;
   dsh_home: string;
+  host_paths_retained: boolean;
   profile: string;
   provider: string;
   model: string;
@@ -94,6 +95,7 @@ export interface RecordRunOptions {
   initializeTimeoutMs?: number;
   requestTimeoutMs?: number;
   excludedPaths?: string[];
+  retainHostPaths?: boolean;
   environment?: NodeJS.ProcessEnv;
 }
 
