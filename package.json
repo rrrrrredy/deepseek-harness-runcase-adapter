@@ -1,0 +1,48 @@
+{
+  "name": "deepseek-harness-runcase-adapter",
+  "version": "0.1.0",
+  "description": "Capture DeepSeek Harness SDK runs as validated RunCase Interchange records.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Song Luo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rrrrrredy/deepseek-harness-runcase-adapter.git"
+  },
+  "bugs": "https://github.com/rrrrrredy/deepseek-harness-runcase-adapter/issues",
+  "homepage": "https://github.com/rrrrrredy/deepseek-harness-runcase-adapter#readme",
+  "bin": {
+    "dsh-runcase": "./dist/src/cli.js"
+  },
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "files": [
+    "dist/src",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "UPSTREAM.md",
+    "upstream.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "generate:example": "npm run build && node scripts/generate-example.mjs",
+    "check": "npm test && node dist/src/cli.js validate examples/agent.run.deepseek.sample.json",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=22.19.0 <25"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-sdk-client": "0.1.2-alpha.2",
+    "@runcase/interchange": "https://github.com/rrrrrredy/runcase-interchange/releases/download/v0.1.2/runcase-interchange-0.1.2.tgz"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "typescript": "7.0.2"
+  }
+}

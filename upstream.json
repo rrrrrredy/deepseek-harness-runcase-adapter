@@ -1,0 +1,22 @@
+{
+  "product": "DeepSeek Harness",
+  "repository": "https://github.com/deepseek-ai/deepseek-harness",
+  "tag": "dsh-v0.1.2-alpha.2",
+  "commit": "0a53fb55bea101816fa226bb964ae2bed71c343b",
+  "sdk_client": {
+    "package": "@deepseek-ai/dsh-sdk-client",
+    "version": "0.1.2-alpha.2",
+    "integrity": "sha512-co+yh6qvHDZ0ksfhulF2QVdxXY7sAbXCmoIVfSEZOtyASfl46Goawm4r7d14v+myMAPH7P/kBA/KrI87ulA1Qw=="
+  },
+  "runtime": {
+    "package": "@deepseek-ai/dsh",
+    "version": "0.1.2-alpha.2",
+    "integrity": "sha512-4TvTC5kRKlgtSU2UTBv+cID9a2Z+6+m6mpvjXWJfVzuTkflCff6s4MsQpFJTCmwFh/k7zNWe7qFXcLYMV/5VvA=="
+  },
+  "wire_protocol": {
+    "server_name": "deepseek-harness-sdk-runtime",
+    "version": "0.0.1",
+    "negotiated": false
+  },
+  "verified_at": "2026-08-31"
+}

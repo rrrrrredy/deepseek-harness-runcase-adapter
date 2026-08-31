@@ -1,0 +1,231 @@
+{
+  "schema_version": "agent.run.v1",
+  "run_id": "55555555-5555-4555-8555-555555555555",
+  "goal": {
+    "text": "Inspect the parser and explain the change.",
+    "source": "user"
+  },
+  "agent": {
+    "product": "DeepSeek Harness",
+    "product_version": "0.1.2-alpha.2",
+    "adapter_version": "deepseek-harness-runcase-adapter/0.1.0",
+    "model": "deepseek-v4-flash",
+    "model_provider": "deepseek-official"
+  },
+  "configuration": {
+    "snapshot_id": "sha256:5a6c5dc990fb6d1733b3b553e0217a6fd359690b971c386e744cb4c1b76741ee",
+    "files": [],
+    "working_directory": "/workspace/example",
+    "environment": {
+      "profile": "sdk",
+      "dsh_home": "/workspace/.dsh",
+      "sdk_wire_version": "0.0.1"
+    },
+    "git_commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "started_at": "2026-08-31T09:00:00.000Z",
+  "ended_at": "2026-08-31T09:00:03.000Z",
+  "status": "succeeded",
+  "capture": {
+    "mode": "managed",
+    "sources": [
+      {
+        "name": "DeepSeek Harness SDK notification stream",
+        "version": "0.1.2-alpha.2",
+        "status": "available",
+        "details": "Pinned dsh-v0.1.2-alpha.2; wire 0.0.1 has no version negotiation."
+      }
+    ],
+    "completeness": "partial",
+    "gaps": [
+      {
+        "gap_id": "dsh-prompt-causality",
+        "kind": "mapping_loss",
+        "summary": "The SDK owns a durable receipt-to-idle interval, but the wire does not assign an assistant message or turn/end to one prompt.",
+        "source": "DeepSeek Harness SDK"
+      },
+      {
+        "gap_id": "dsh-remote-subagent-finish",
+        "kind": "missing",
+        "summary": "Remote subagent completions are not reported by the SDK notification protocol.",
+        "source": "DeepSeek Harness SDK"
+      },
+      {
+        "gap_id": "dsh-reasoning-excluded",
+        "kind": "excluded",
+        "summary": "Hidden model reasoning is not available and is not inferred from session events.",
+        "source": "DeepSeek Harness SDK"
+      },
+      {
+        "gap_id": "dsh-artifact-snapshot",
+        "kind": "missing",
+        "summary": "The SDK stream does not provide a complete post-run filesystem or artifact manifest.",
+        "source": "DeepSeek Harness SDK"
+      }
+    ],
+    "redaction": {
+      "status": "applied",
+      "secret_patterns_applied": [
+        "secret-key-name",
+        "bearer-token"
+      ],
+      "excluded_paths": [
+        ".env"
+      ],
+      "redacted_field_count": 0
+    }
+  },
+  "events": [
+    {
+      "event_id": "dsh-0-a2b96a306cc2",
+      "sequence": 0,
+      "timestamp": "2026-08-31T09:00:00.000Z",
+      "received_at": "2026-08-31T09:00:00.000Z",
+      "type": "dsh.agent.inbox.spliced",
+      "source": "deepseek-harness-sdk",
+      "summary": "DeepSeek Harness agent/inbox/spliced",
+      "data": {
+        "notification_method": "session.event",
+        "params": {
+          "sessionId": "runcase-example-session",
+          "event": {
+            "type": "agent/inbox/spliced",
+            "seq": 0,
+            "time": 1788166800000,
+            "data": {
+              "inserted": [
+                {
+                  "id": "example-user",
+                  "role": "user"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "content_refs": [],
+      "redacted": false
+    },
+    {
+      "event_id": "dsh-1-b3bb7995c8e1",
+      "sequence": 1,
+      "timestamp": "2026-08-31T09:00:00.010Z",
+      "received_at": "2026-08-31T09:00:00.010Z",
+      "type": "dsh.notification.session.status",
+      "source": "deepseek-harness-sdk",
+      "summary": "DeepSeek Harness session status: running",
+      "data": {
+        "notification_method": "session.status",
+        "params": {
+          "sessionId": "runcase-example-session",
+          "status": "running"
+        }
+      },
+      "content_refs": [],
+      "redacted": false
+    },
+    {
+      "event_id": "dsh-2-7e3ecdfa276d",
+      "sequence": 2,
+      "timestamp": "2026-08-31T09:00:02.500Z",
+      "received_at": "2026-08-31T09:00:02.510Z",
+      "type": "dsh.assistant.message",
+      "source": "deepseek-harness-sdk",
+      "summary": "DeepSeek Harness assistant/message",
+      "data": {
+        "notification_method": "session.event",
+        "params": {
+          "sessionId": "runcase-example-session",
+          "event": {
+            "type": "assistant/message",
+            "seq": 1,
+            "time": 1788166802500,
+            "data": {
+              "message": {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "The parser change is ready for review."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "content_refs": [],
+      "redacted": false
+    },
+    {
+      "event_id": "dsh-3-f22fb9741496",
+      "sequence": 3,
+      "timestamp": "2026-08-31T09:00:03.000Z",
+      "received_at": "2026-08-31T09:00:03.000Z",
+      "type": "dsh.turn.end",
+      "source": "deepseek-harness-sdk",
+      "summary": "DeepSeek Harness turn/end",
+      "data": {
+        "notification_method": "session.event",
+        "params": {
+          "sessionId": "runcase-example-session",
+          "event": {
+            "type": "turn/end",
+            "seq": 2,
+            "time": 1788166803000,
+            "data": {
+              "reason": {
+                "kind": "completed"
+              }
+            }
+          }
+        }
+      },
+      "content_refs": [],
+      "redacted": false
+    },
+    {
+      "event_id": "dsh-4-1ae3941b54df",
+      "sequence": 4,
+      "timestamp": "2026-08-31T09:00:03.000Z",
+      "received_at": "2026-08-31T09:00:03.000Z",
+      "type": "dsh.notification.session.status",
+      "source": "deepseek-harness-sdk",
+      "summary": "DeepSeek Harness session status: idle",
+      "data": {
+        "notification_method": "session.status",
+        "params": {
+          "sessionId": "runcase-example-session",
+          "status": "idle"
+        }
+      },
+      "content_refs": [],
+      "redacted": false
+    }
+  ],
+  "artifacts": [],
+  "outcome": {
+    "status": "unknown",
+    "summary": "DeepSeek Harness completed and returned: The parser change is ready for review. Task correctness was not independently verified.",
+    "verifier_refs": []
+  },
+  "user_corrections": [],
+  "resource_usage": {
+    "duration_ms": 3000
+  },
+  "extensions": {
+    "deepseek_harness": {
+      "capture_schema": "deepseek.harness.capture.v1",
+      "session_id": "runcase-example-session",
+      "profile": "sdk",
+      "upstream_tag": "dsh-v0.1.2-alpha.2",
+      "upstream_commit": "0a53fb55bea101816fa226bb964ae2bed71c343b",
+      "sdk_server_name": "deepseek-harness-sdk-runtime",
+      "sdk_wire_version": "0.0.1",
+      "protocol_negotiated": false,
+      "notifications_captured": 5,
+      "final_response": "The parser change is ready for review.",
+      "finish_reason": "completed"
+    }
+  }
+}

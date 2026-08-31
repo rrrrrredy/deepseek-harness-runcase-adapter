@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deepseek-adapter-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: ${{ matrix.label }} contract and package
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: Windows x64
+          - os: ubuntu-24.04
+            label: Ubuntu x64
+          - os: macos-14
+            label: macOS arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - run: npm ci
+      - run: npm check
+      - run: npm pack --dry-run
