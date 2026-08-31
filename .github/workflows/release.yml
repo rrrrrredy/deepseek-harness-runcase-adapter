@@ -19,7 +19,7 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
-      - run: npm check
+      - run: npm run check
       - run: npm pack
       - run: sha256sum deepseek-harness-runcase-adapter-0.1.0.tgz > SHA256SUMS
       - uses: actions/attest-build-provenance@v3
