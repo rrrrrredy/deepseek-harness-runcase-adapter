@@ -6,6 +6,15 @@ Record one DeepSeek Harness SDK run as a validated, portable `agent.run.v1` JSON
 
 This is an independent community adapter. It is not an official DeepSeek product, and it does not claim that a completed run solved the task. Without an external verifier, `outcome.status` stays `unknown`.
 
+## Which repository should I use?
+
+| What you want to do | Start here |
+| --- | --- |
+| Keep, diagnose, compare, and safely apply one Codex capability-file change | [Runtime Evolution Workbench](https://github.com/rrrrrredy/runtime-evolution-workbench) |
+| Build and inspect resettable workflow Cases; run Codex only where the isolation gate passes | [Workflow Environment Factory](https://github.com/rrrrrredy/workflow-environment-factory) |
+| Capture DeepSeek Harness SDK Runs as portable evidence | [DeepSeek Harness RunCase Adapter](https://github.com/rrrrrredy/deepseek-harness-runcase-adapter) |
+| Validate or implement portable Run, Case, and Score files | [RunCase Interchange](https://github.com/rrrrrredy/runcase-interchange) |
+
 ## What this adds
 
 - Starts the official pinned DeepSeek Harness SDK runtime and records its notification stream.
@@ -33,6 +42,12 @@ npm install --global ./deepseek-harness-runcase-adapter-0.1.0.tgz
 ```
 
 The package does not register a background service, plugin, startup item, or account connection.
+
+Remove the global command and package with:
+
+```bash
+npm uninstall --global deepseek-harness-runcase-adapter
+```
 
 ## Record a run
 

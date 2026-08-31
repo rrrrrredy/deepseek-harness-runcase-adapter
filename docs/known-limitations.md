@@ -8,4 +8,5 @@
 - Files changed by the Agent are not enumerated by the SDK, so the adapter does not invent an artifact list.
 - Hidden reasoning is unavailable and excluded by design.
 - Task correctness remains unknown without an external verifier.
+- Capture and Run files are each created atomically and never overwrite an existing path, but the pair is not one crash transaction. A forced process stop between the two commits can leave a valid orphan `*.capture.json` with no Run file; inspect it and retry with a new output base or remove it deliberately.
 - Hosted CI covers a keyless SDK contract. It does not exercise a production account, physical Mac, Intel Mac, or model quality.
