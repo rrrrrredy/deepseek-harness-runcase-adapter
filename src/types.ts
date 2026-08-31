@@ -58,6 +58,7 @@ export interface CaptureRedaction {
 
 export interface DeepSeekHarnessCapture {
   schema_version: "deepseek.harness.capture.v1";
+  run_id: string;
   adapter_version: string;
   upstream: {
     product: "DeepSeek Harness";

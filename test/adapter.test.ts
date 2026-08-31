@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
-import { assertValidRunCase, recordDeepSeekRun, type JsonValue } from "../src/index.js";
+import { assertValidRunCase, recordDeepSeekRun, toRunCase, type JsonValue } from "../src/index.js";
 
 const fakeRuntime = resolve("test/fixtures/fake-dsh.mjs");
 
@@ -27,6 +27,8 @@ test("records a keyless SDK run, redacts secrets, and keeps correctness unknown"
       requestTimeoutMs: 5_000
     });
     assert.equal(recorded.capture.status, "succeeded");
+    assert.equal(recorded.runCase.run_id, recorded.capture.run_id);
+    assert.equal(toRunCase(recorded.capture).run_id, recorded.capture.run_id);
     assert.equal(recorded.runCase.schema_version, "agent.run.v1");
     assert.equal((recorded.runCase.outcome as { status: string }).status, "unknown");
     assert.ok(recorded.capture.notifications.length >= 5);

@@ -73,12 +73,14 @@ function finishReason(result: RunResult): string | undefined {
 }
 
 function statusForResult(reason: string | undefined): CapturedRunStatus {
-  return reason === "aborted" || reason === "error" || reason === "max-tokens" ? "failed" : "succeeded";
+  if (reason === "aborted") return "cancelled";
+  return reason === "error" || reason === "max-tokens" ? "failed" : "succeeded";
 }
 
 function statusForError(error: unknown): CapturedRunStatus {
   const candidate = error as NodeJS.ErrnoException;
   const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  if (/initializ|handshake/i.test(message) && /timed?\s*out|timeout/i.test(message)) return "infrastructure_error";
   if (/timed?\s*out|timeout/i.test(message)) return "agent_timeout";
   if (candidate.code === "ENOENT" || /spawn|executable|profile handshake/i.test(message)) return "infrastructure_error";
   if (/exited|transport|closed|pipe|EOF/i.test(message)) return "agent_crash";
@@ -148,6 +150,7 @@ export async function recordDeepSeekRun(options: RecordRunOptions): Promise<Reco
   const failure = runError ?? closeError;
   const raw: DeepSeekHarnessCapture = {
     schema_version: "deepseek.harness.capture.v1",
+    run_id: randomUUID(),
     adapter_version: adapterVersion,
     upstream,
     invocation: {

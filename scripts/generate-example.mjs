@@ -8,6 +8,7 @@ const endedAt = "2026-08-31T09:00:03.000Z";
 const sessionId = "runcase-example-session";
 const capture = {
   schema_version: "deepseek.harness.capture.v1",
+  run_id: "55555555-5555-4555-8555-555555555555",
   adapter_version: "0.1.0",
   upstream: {
     product: "DeepSeek Harness",
@@ -92,7 +93,6 @@ const capture = {
 };
 
 const run = toRunCase(capture);
-run.run_id = "55555555-5555-4555-8555-555555555555";
 const destination = resolve("examples/agent.run.deepseek.sample.json");
 mkdirSync(resolve("examples"), { recursive: true });
 writeFileSync(destination, `${JSON.stringify(run, null, 2)}\n`, "utf8");

@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { ProtocolValidator } from "@runcase/interchange";
 
 import { jsonValue } from "./redaction.js";
@@ -130,7 +130,7 @@ export function toRunCase(capture: DeepSeekHarnessCapture): JsonObject {
 
   const run: JsonObject = {
     schema_version: "agent.run.v1",
-    run_id: randomUUID(),
+    run_id: capture.run_id,
     goal: {
       text: capture.invocation.prompt,
       source: "user"
